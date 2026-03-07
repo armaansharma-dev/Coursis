@@ -18,6 +18,7 @@ const UserSchema = new Schema({
     
     password : {
         type: String,
+        required : true,
         select : false,
     },
     
@@ -27,6 +28,7 @@ const UserSchema = new Schema({
         default : "user",
         immutable : true
     }
-})
+},
+{timestamps : true}).strict()
 
 module.exports = mongoose.model("User", UserSchema)

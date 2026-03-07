@@ -1,7 +1,7 @@
 const { app } = require("./app.js")
 const { connectDB } = require("./config/db.js")
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 5400
 
 const startServer = async() => {
     await connectDB()

@@ -2,6 +2,8 @@ const Course = require("../models/Course")
 const { AppError } = require("../utils/AppError")
 
 exports.ownership = async(req, res, next) => {
+    try{
+
     const course = await Course.findById(req.params.id)
     if(!course){
        return next(new AppError("course does not exist", 400))
@@ -18,4 +20,7 @@ exports.ownership = async(req, res, next) => {
 
     req.course = course
     next()
+}catch(err){
+    next(err)
+}
 }

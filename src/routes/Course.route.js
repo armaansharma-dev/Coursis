@@ -1,19 +1,71 @@
-const express = require("express")
-const Router = express.Router
+const {Router} = require("express")
+const {logger} = require("../middlewares/logger")
+const {auth} = require("../middlewares/authenticate")
+const {restrictTo} = require("../middlewares/restrictTo")
+const {ownership} = require("../middlewares/ownership")
+const {createCourseValidator, updateCourseValidator} = require("../validators/course.schema")
+const {idValidator} = require("../validators/paramSchema")
+
+const {createCourse, updateCourse, deleteCourse, togglePublish} = require("../controllers/teacher.controller")
+const {publicCourses, viewCoursePublic} = require("../controllers/public.controller")
+const {getEnrolledUsers} = require("../controllers/enrollment.controller")
 
 const courseRouter = Router()
 
-courseRouter.get("/", list)
+courseRouter.post(
+    "/",
+    logger, 
+    auth,
+    restrictTo("admin", "teacher"),
+    createCourseValidator, 
+    createCourse)        
 
-//admin coures routes:
-courseRouter.post("/", auth, restrictTo("admin"), create)                //  instead of   "/create"
-courseRouter.put("/:id/publish", auth, restrictTo("admin"), publish)
-courseRouter.get("/:id/allusers", auth, restrictTo("admin"), allusers)
-courseRouter.patch("/:id", auth, restrictTo("admin"), edit)              //               "/edit/:id"
-courseRouter.delete("/:id", auth, restrictTo("admin"), deletecourse)     //               "/delete/:id"
+courseRouter.put(
+    "/:id/publish", 
+    logger,
+    auth,
+    restrictTo("admin", "teacher"),
+    idValidator,
+    ownership,
+    togglePublish)
 
-courseRouter.get("/:id", veiewone) //written last so doesnt conflict with other GET (they are multiple) routes with (/:id)
+courseRouter.get(
+    "/:id/enrollments",
+    logger,
+    auth,
+    restrictTo("admin", "teacher"),
+    idValidator,
+    ownership,
+    getEnrolledUsers)
 
-module.exports = {
-    courseRouter : courseRouter
-}
+courseRouter.patch(
+    "/:id", 
+    logger,
+    auth,
+    restrictTo("admin", "teacher"),
+    idValidator,
+    ownership,
+    updateCourseValidator, 
+    updateCourse)             
+
+courseRouter.delete(
+    "/:id", 
+    logger,
+    auth,
+    restrictTo("admin", "teacher"),
+    idValidator,
+    ownership, 
+    deleteCourse)
+
+courseRouter.get(
+    "/", 
+    logger, 
+    publicCourses)
+
+courseRouter.get(
+    "/:id", 
+    logger, 
+    idValidator, 
+    viewCoursePublic)
+
+module.exports = courseRouter

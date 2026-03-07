@@ -1,7 +1,7 @@
 const {z} = require("zod")
 
 const enrollmentSchema = z.object({
-   courseId : z.string().length(24),            // as they both are mongoDb object ID they would have 24 chars fixed.
+   courseId : z.string().length(24),            // as it is a mongoDb object ID they would have 24 chars fixed.
 }).strict()
 
 const updateProgressSchema = z.object({
@@ -9,6 +9,6 @@ const updateProgressSchema = z.object({
 }).strict()
 
 module.exports = {
-    enrollmentSchema,
-    updateProgressSchema
+   enrollmentValidator : {body : enrollmentSchema},
+   updateProgressValidator : {body : updateProgressSchema}
 }

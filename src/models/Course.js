@@ -30,15 +30,25 @@ image : {
 
 published : {
     type : Boolean,
-    default : fasle
+    default : false
 },
-    
+
+lastModifyBy : {
+    type : ObjectID,
+    ref : "User"
+},
+
+lastModifyAt : {
+    type : Date
+},
+
 creator : {
         type : ObjectID, 
         ref: "User",
-        immutable : tue,
+        immutable : true,
         required: true
     }
-}).strict()
+},
+{timestamps : true}).strict()
 
 module.exports = mongoose.model("Course", CourseSchema)

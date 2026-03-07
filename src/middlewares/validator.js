@@ -6,15 +6,20 @@ exports.validator = (schema) => {
         }
         
         if(schema.params){
-            req.params = schema.body.parse(req.params)
+            req.params = schema.params.parse(req.params)
         }
         
         if(schema.query){
-            req.query = schema.body.parse(req.query)
+            req.query = schema.query.parse(req.query)
         }
         next()
     }catch(err){
-        next(err)
-    }
+        if(err.name === "ZodError"){
+            return res.status(400).json({
+                success : false,
+                errors : err.errors
+            })
+        }
+    }next(err)
     }
 }

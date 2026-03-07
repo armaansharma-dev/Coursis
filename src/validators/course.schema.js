@@ -7,6 +7,9 @@ const courseSchema = z.object({
     image: z.string().url(),
 }).strict()
 
+const updateCourse = courseSchema.partial()
+
 module.exports = {
-    courseSchema,
+    createCourseValidator : {body : courseSchema},
+    updateCourseValidator : {body : updateCourse}
 }

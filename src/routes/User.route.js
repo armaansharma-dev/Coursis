@@ -1,11 +1,28 @@
-    const { Router } = require("express")
+const {Router} = require("express")
+const {logger} = require("../middlewares/logger")
+const {auth} = require("../middlewares/authenticate")
+const {myProfile, updateMyProfile, changePassword, changeEmail} = require("../controllers/user.controller")
 
-    const userRouter = Router()
+const userRouter = Router()
 
-    userRouter.get("/my-profile", auth, myprofile)
-    userRouter.patch("/update-profile", auth, updateprofile)
-    userRouter.get("/my-Courses", auth, myCourses )
+userRouter.get("/me",
+    logger,
+    auth,
+    myProfile)
 
-    module.exports = {
-        userRouter,
-    }
+userRouter.patch("/me", 
+    logger,
+    auth,
+    updateMyProfile)
+
+userRouter.patch("/me/password",
+    logger,
+    auth,
+    changePassword)
+
+userRouter.patch("/me/email",
+    logger,
+    auth,
+    changeEmail)
+
+module.exports = userRouter

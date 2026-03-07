@@ -10,7 +10,11 @@ const changePasswordSchema = z.object({
 })
 
 const updateProfileSchema = z.object({
-    name: z.string().min(4)//.optional(),
+    name: z.string().min(4).optional(),
+}).strict()
+
+const changeRoleSchema = z.object({
+    role : z.enum(["user", "teacher"])
 }).strict()
 
 const changeEmaiilSchema = z.object({
@@ -19,7 +23,8 @@ const changeEmaiilSchema = z.object({
 }).strict()
 
 module.exports = {
-    changePasswordSchema,
-    updateProfileSchema,
-    changeEmaiilSchema
+    changePasswordValidator : {body : changePasswordSchema},
+    updateProfileValidator : {body : updateProfileSchema},
+    changeEmailValidator : {body : changeEmaiilSchema},
+    changeRoleValidator : {body : changeRoleSchema}
 }

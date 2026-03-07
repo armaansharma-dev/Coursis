@@ -1,11 +1,11 @@
+const { asyncWrapper } = require("../middlewares/catchAsync")
 const Course = require("../models/Course")
 const Enrollment = require("../models/Enrollment")
 const { AppError } = require("../utils/AppError")
-const { enrollmentSchema } = require("../validators/enrollment.schema")
 
-async function createEnrollment(req, res, next){
+exports.createEnrollment = asyncWrapper(async function createEnrollment(req, res, next){
     const userID = req.user.id
-    const courseID = req.body.CourseID
+    const courseID = req.params.courseID
 
     const course = await Course.findOne({_id : courseID})
     if(!course){
@@ -32,12 +32,12 @@ async function createEnrollment(req, res, next){
         courseID : courseID,
         status : enroll.status
     })
-}
+})
 
-async function getEnrollments(req, res, next){
+exports.getEnrolledCourses = asyncWrapper(async function getEnrolledCourses(req, res, next){
     const userID = req.user.id
     
-    const myEnrollments = await Enrollment.find({user : userID}).populate("course")
+    const myEnrollments = await Enrollment.find({user : userID}).populate("course", "title description price createdAt")
     if(myEnrollments.length === 0){
         return res.status(200).json({
             success : true,
@@ -51,14 +51,34 @@ async function getEnrollments(req, res, next){
         count : myEnrollments.length,
         enrollments : myEnrollments
     })
-}
+})
 
-async function updateProgress(req, res, next){
+exports.getEnrolledUsers = asyncWrapper(async function getEnrolledUsers(req, res, next){
+    const courseID = req.course.id
+    
+    const myEnrollments = await Enrollment.find({Course : courseID}).populate("user", "name email createdAt")
+    if(myEnrollments.length === 0){
+        return res.status(200).json({
+            success : true,
+            message : "No enrolled Users found",
+            enrollments : []
+        })
+    }
+    
+    return res.status(200).json({
+        success : true,
+        count : myEnrollments.length,
+        enrollments : myEnrollments
+    })
+})
+
+exports.updateProgress = asyncWrapper(async function updateProgress(req, res, next){
     const userID = req.user.id
     const {progress} = req.body
-    const enrollmentID = req.params.id
+    const courseID = req.params.id
 
-    const enrollment = await Enrollment.findOne({_id : enrollmentID})
+    const enrollment = await Enrollment.findOne({user: userID,
+   course: courseID})
     if(!enrollment){
         return next(new AppError("Enrollment doesnt exist",404))
     }
@@ -67,16 +87,17 @@ async function updateProgress(req, res, next){
        return next(new AppError("User not enrolled",404))
     }
 
-    const update = await enrollment.updateOne({progress})
+    enrollment.progress = progress
+    await enrollment.save()
 
-    return res.status(201).json({
+    return res.status(200).json({
         success : true,
         update,
         progress
     })
-}
+})
 
-async function cancelEnrollment(req, res, next){
+exports.cancelEnrollment = asyncWrapper(async function cancelEnrollment(req, res, next){
     const userID = req.user.id
     const enrollmentID = req.params.id
 
@@ -98,4 +119,19 @@ async function cancelEnrollment(req, res, next){
         status : enrollment.status,
         enrollmentID
     })
-}
+})
+
+exports.getEnrolledCoursesAdmin = asyncWrapper(async function getEnrolledCoursesAdmin(req, res, next){
+    const {id} = req.params
+
+    const enrollment = await Enrollment.find({user : id}).populate("course", "title description published")
+    if(enrollment.length === 0){
+        return next (new AppError("no enrollments found"))
+    }
+
+    res.status(200).json({
+        success : true,
+        count : enrollment.length,
+        enrollment
+    })
+})

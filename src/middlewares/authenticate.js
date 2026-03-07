@@ -1,18 +1,18 @@
-const JWT = require("jsonwebtoken")
+const { jwtVerify } = require("../utils/token")
 
 function auth(req, res, next){
     const header = req.headers.authorization
 
-    if (!header || !header.startwtith("Bearer ")){
+    if (!header || !header.startsWtith("Bearer ")){
         return res.status(401).json({
-            message : "Unaoutherized"
+            message : "Unautherized"
         })
     }
 
     const token = header.split(" ")[1]
 
     try{
-    const decodedData = jwtverify(token)
+    const decodedData = jwtVerify(token)
     req.user = decodedData
     next()
     }catch{
@@ -23,5 +23,5 @@ function auth(req, res, next){
 }
 
 module.exports = {
-    auth,
+    auth
 }

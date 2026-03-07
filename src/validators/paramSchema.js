@@ -4,13 +4,13 @@ const {z} = require("zod")
 
 const idSchema = z.object({
     id : z.string().length(24),
-})
+}).strict()
 
 // Query parameter schema    // QUERY validation (?page=1&limit=10)
 
 const filterSchema = z.object ({
     category : z.string().optional(),
-    minPrice : z.coerce.number().min(999).optional(),
+    minPrice : z.coerce.number().min(0).optional(),
     maxPrice : z.coerce.number().max(9999).optional(),
 }).strict()
 
@@ -20,7 +20,7 @@ const paginationSchema = z.object({
 })
 
 module.exports = {
-    idSchema,
-    filterSchema,
-    paginationSchema,
+    idValidator : {params : idSchema},
+    filterValidator : {query : filterSchema},
+    paginationValidator : {query : paginationSchema},
 }

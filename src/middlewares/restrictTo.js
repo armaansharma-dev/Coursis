@@ -1,11 +1,12 @@
-function restrictTo(...allowedRoles){
-    return(req,res,next) => {
-        if(!allowedRoles.includes(req.user.role)){
-            return res.status(403).json({
-                message: "Forbidden"
-            })
-        }next()
+const { AppError } = require("../utils/AppError")
+
+function restrictTo(...roles){
+ return (req,res,next)=>{
+    if(!roles.includes(req.user.role)){
+        return next(new AppError("Forbidden",403))
     }
+    next()
+ }
 }
 
 module.exports = {

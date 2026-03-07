@@ -4,10 +4,10 @@ function globalerrorhandler(err, req, res, next){
     
     res.status(statuscode).json({
         success : false,
-        message : err.message
+        message : message
     })
 }
 
 module.exports = {
-    globalerrorhandler,
+    globalerrorhandler
 }

@@ -1,8 +1,10 @@
+const { asyncWrapper } = require("../middlewares/catchAsync")
 const User = require("../models/User")
 const { AppError } = require("../utils/AppError")
+const bcrypt = require("bcrypt")
 
-exports.myProfile = async(req, res, next) => {
-    const user = User.findById(req.user.id).select("-password")
+exports.myProfile = asyncWrapper(async(req, res, next) => {
+    const user = await User.findById(req.user.id).select("-password")
 
     if(!user){
         return next(new AppError("User not found", 404))
@@ -12,9 +14,9 @@ exports.myProfile = async(req, res, next) => {
         status : "success",
         data : user
     })
-}
+})
 
-exports.updateMyProfile = async(req, res, next) => {
+exports.updateMyProfile = asyncWrapper(async(req, res, next) => {
     const allowedFields = ["name"]
     const updates = {}
 
@@ -34,10 +36,14 @@ exports.updateMyProfile = async(req, res, next) => {
         status : "success",
         data : user
     })
-}
+})
 
-exports.changePassword = async(req, res, next) => {
+exports.changePassword = asyncWrapper(async(req, res, next) => {
     const user = await User.findById(req.user.id).select("+password")
+
+    if(!user){
+        return next(new AppError("User nt found", 404))
+    }
 
     const isCorrect = await bcrypt.compare(req.body.currentPassword, user.password)
 
@@ -52,9 +58,9 @@ exports.changePassword = async(req, res, next) => {
         status : "success",
         message : "Password changed, please login again"
     })
-}
+})
 
-exports.changeEmaiil = async(req, res, next) => {
+exports.changeEmail = asyncWrapper(async(req, res, next) => {
    const {newMail, password} = req.body
    
    const user = await User.findById(req.user.id).select("+password")
@@ -75,7 +81,7 @@ exports.changeEmaiil = async(req, res, next) => {
    user.email = newMail
    await user.save()
 
-   safeUser = {
+   const safeUser = {
     id : user._id,
     name : user.name,
     email : user.email,
@@ -85,4 +91,4 @@ exports.changeEmaiil = async(req, res, next) => {
     status : "success",
     data : safeUser
    })
-}
+})

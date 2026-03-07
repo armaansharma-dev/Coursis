@@ -1,9 +1,9 @@
 const User = require("../models/User")
-const authSchema = require("../validators/auth.schema")
 const AppError = require("../utils/AppError")
 const {hasher, compare, jwtSign} = require("../utils")
+const { asyncWrapper } = require("../middlewares/catchAsync")
 
-async function signup(req, res, next){
+exports.signup = asyncWrapper(async function signup(req, res, next){
     const{name, email, password} = req.body
 
     const extinguish = await User.findOne({email})
@@ -32,9 +32,9 @@ async function signup(req, res, next){
         token,
         safeuser
     })
-}
+})
 
-async function signin(req, res, next){
+exports.signin = asyncWrapper(async function signin(req, res, next){
     const email = req.body.email
     const plainPassword = req.body.password
 
@@ -61,4 +61,4 @@ async function signin(req, res, next){
         token,
         safeuser
     })
-}
+})

@@ -23,7 +23,9 @@ const EnrollmentSchema = new Schema({
     },
     
     progress : {
-        type : Number, 
+        type : Number,
+        min: 0,
+        max: 100,
         default: 0
     },
     
@@ -38,7 +40,7 @@ const EnrollmentSchema = new Schema({
         required: true,
         immutable : true
     }
-})
+}).strict()
 
  EnrollmentSchema.index(
         {user : 1, course :1},

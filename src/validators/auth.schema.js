@@ -12,6 +12,6 @@ const signinSchema = z.object({
 }).strict()
 
 module.exports = ({
-    signupSchema,
-    signinSchema,
+    signupValidator : {body : signupSchema},
+    signinValidator : {body : signinSchema},
 })
