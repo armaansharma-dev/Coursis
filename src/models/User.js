@@ -25,8 +25,7 @@ const UserSchema = new Schema({
     role: {
         type: String, 
         enum: ["admin", "user", "teacher"],
-        default : "user",
-        immutable : true
+        default : "user"
     }
 },
 {timestamps : true}).strict()
