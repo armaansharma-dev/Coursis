@@ -1,7 +1,7 @@
-# 📚 Course Platform Backend API
+# 📚 Coursis Backend API
 
-A **Node.js + Express REST API** built with a clean and scalable backend architecture.
-The project demonstrates **modular Express structure, authentication, middleware pipelines, and centralized error handling**, following patterns commonly used in real production backends.
+A **Node.js + Express REST API** built with a clean and modular backend architecture.
+Designed for scalability, maintainability, and production-ready patterns.
 
 ---
 
@@ -32,25 +32,11 @@ The project follows a **layered and modular Express architecture**.
 project-root
 │
 ├── controllers
-│   └── user.controller.js
-│
 ├── middlewares
-│   ├── authenticate.js
-│   ├── catchAsync.js
-│   ├── errorHandler.js
-│   └── logger.js
-│
 ├── models
-│   └── User.js
-│
 ├── routes
-│   └── user.routes.js
-│
 ├── utils
-│   └── AppError.js
-│
 ├── validators
-│
 ├── app.js
 ├── server.js
 └── README.md
@@ -70,7 +56,7 @@ This structure helps maintain **separation of concerns and scalability**.
 
 # ✨ Core Features
 
-### 👤 User Profile Management
+### 👤 User Management
 
 Authenticated users can:
 
@@ -130,9 +116,9 @@ Global Error Handler
 
 Benefits:
 
-* cleaner controller logic
-* centralized error handling
-* easier debugging
+* Cleaner controller logic
+* Centralized error handling
+* Easier debugging
 
 ---
 
@@ -144,7 +130,7 @@ A custom **async wrapper middleware** ensures all controller errors are properly
 Example:
 
 ```javascript
-exports.myProfile = asyncWrapper(async (req, res, next) => {
+exports.getProfile = asyncWrapper(async (req, res, next) => {
   const user = await User.findById(req.user.id).select("-password")
   res.status(200).json({ status: "success", data: user })
 })
@@ -180,8 +166,8 @@ Example response:
 A lightweight logger middleware records:
 
 * HTTP method
-* endpoint
-* request time
+* Endpoint
+* Request time
 
 Useful during development and debugging.
 
@@ -204,43 +190,15 @@ User.findById(id).select("-password")
 
 ---
 
-# 🧪 Example API Request
-
-### Get Current User
-
-Request:
-
-```
-GET /users/me
-Authorization: Bearer <token>
-```
-
-Example response:
-
-```json
-{
-  "status": "success",
-  "data": {
-    "id": "65a8f3...",
-    "name": "John Doe",
-    "email": "john@example.com"
-  }
-}
-```
-
----
-
 # 📦 Current Status
 
-The backend currently includes:
-
-✅ Modular Express architecture
-✅ JWT authentication
-✅ User profile management
-✅ Password & email update endpoints
-✅ Async controller wrapper
-✅ Centralized error handling
-✅ Middleware request pipeline
+* ✅ Modular Express architecture
+* ✅ JWT authentication
+* ✅ User profile management
+* ✅ Password & email update endpoints
+* ✅ Async controller wrapper
+* ✅ Centralized error handling
+* ✅ Middleware request pipeline
 
 The **core backend API is fully functional** and ready for additional features.
 
@@ -248,10 +206,7 @@ The **core backend API is fully functional** and ready for additional features.
 
 # 🔮 Planned Improvements
 
-Future improvements planned:
-
-* Pagination for large datasets
-* Filtering and sorting
+* Pagination and filtering
 * Course management system
 * Enrollment system
 * Role-based access control (RBAC)
@@ -297,11 +252,11 @@ JWT_SECRET=your_jwt_secret
 
 This project was built to practice:
 
-* scalable Express architecture
-* middleware design patterns
-* authentication systems
-* backend error handling
-* modular API development
+* Scalable Express architecture
+* Middleware design patterns
+* Authentication systems
+* Backend error handling
+* Modular API development
 
 ---
 
