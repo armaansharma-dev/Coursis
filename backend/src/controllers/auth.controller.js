@@ -1,6 +1,7 @@
 const User = require("../models/User")
 const AppError = require("../utils/AppError")
-const {hasher, compare, jwtSign} = require("../utils")
+const { hasher, compare } = require("../utils/Hasher")
+const { jwtSign } = require("../utils/token")
 const { asyncWrapper } = require("../middlewares/catchAsync")
 
 exports.signup = asyncWrapper(async function signup(req, res, next){

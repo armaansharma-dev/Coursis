@@ -49,6 +49,8 @@ creator : {
         required: true
     }
 },
-{timestamps : true}).strict()
+{timestamps : true,
+ strict : true
+})
 
 module.exports = mongoose.model("Course", CourseSchema)

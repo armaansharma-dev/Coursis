@@ -1,4 +1,5 @@
 const {Router} = require("express")
+const { validator } = require("../middlewares/validator")
 const {logger} = require("../middlewares/logger")
 const {auth} = require("../middlewares/authenticate")
 const {restrictTo} = require("../middlewares/restrictTo")
@@ -17,7 +18,7 @@ courseRouter.post(
     logger, 
     auth,
     restrictTo("admin", "teacher"),
-    createCourseValidator, 
+    validator(createCourseValidator), 
     createCourse)        
 
 courseRouter.put(
@@ -25,7 +26,7 @@ courseRouter.put(
     logger,
     auth,
     restrictTo("admin", "teacher"),
-    idValidator,
+    validator(idValidator),
     ownership,
     togglePublish)
 
@@ -34,7 +35,7 @@ courseRouter.get(
     logger,
     auth,
     restrictTo("admin", "teacher"),
-    idValidator,
+    validator(idValidator),
     ownership,
     getEnrolledUsers)
 
@@ -43,9 +44,9 @@ courseRouter.patch(
     logger,
     auth,
     restrictTo("admin", "teacher"),
-    idValidator,
+    validator(idValidator),
     ownership,
-    updateCourseValidator, 
+    validator(updateCourseValidator), 
     updateCourse)             
 
 courseRouter.delete(
@@ -53,7 +54,7 @@ courseRouter.delete(
     logger,
     auth,
     restrictTo("admin", "teacher"),
-    idValidator,
+    validator(idValidator),
     ownership, 
     deleteCourse)
 
@@ -65,7 +66,7 @@ courseRouter.get(
 courseRouter.get(
     "/:id", 
     logger, 
-    idValidator, 
+    validator(idValidator), 
     viewCoursePublic)
 
 module.exports = courseRouter

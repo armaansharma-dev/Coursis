@@ -29,6 +29,8 @@ const UserSchema = new Schema({
         immutable : true
     }
 },
-{timestamps : true}).strict()
+{timestamps : true,
+ strict: true
+})
 
 module.exports = mongoose.model("User", UserSchema)

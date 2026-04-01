@@ -1,8 +1,9 @@
 const express = require ("express")
 const app = express()
-const {notFound} = require("./middlewares/notfound")
-const {globalErrorHandler} = require("./middlewares/globalerrorhandler")
-require("dotenv").config()
+const cors = require("cors");
+app.use(cors())
+const {notfound} = require("./middlewares/notfound")
+const {globalerrorhandler} = require("./middlewares/globalerrorhandler")
 
 const adminRouter = require("./routes/Admin.route")
 const authRouter = require("./routes/Auth.route")
@@ -22,9 +23,9 @@ app.use("/api/v1/course", courseRouter)
 app.use("/api/v1/enrollment", enrollmentRouter)
 app.use("/api/v1/admin", adminRouter)
 
-app.all("*", notFound)
+app.use(notfound)
 
-app.use(globalErrorHandler)
+app.use(globalerrorhandler)
 
 module.exports = {
     app

@@ -1,8 +1,8 @@
 const {Router} = require("express")
 const {logger} = require("../middlewares/logger")
+const { validator } = require("../middlewares/validator");
 const {auth} = require("../middlewares/authenticate")
 const {restrictTo} = require("../middlewares/restrictTo")
-const {ownership} = require("../middlewares/ownership")
 const {idValidator} = require("../validators/paramSchema")
 
 const {enrollmentValidator, updateProgressValidator} = require("../validators/enrollment.schema")
@@ -22,8 +22,8 @@ enrollmentRouter.post(
     logger,
     auth,
     restrictTo("user"),
-    idValidator,
-    enrollmentValidator,
+    validator(idValidator),
+    validator(enrollmentValidator),
     createEnrollment
 )
 
@@ -32,8 +32,8 @@ enrollmentRouter.patch(
     logger,
     auth,
     restrictTo("user"),
-    idValidator,
-    updateProgressValidator,
+    validator(idValidator),
+    validator(updateProgressValidator),
     updateProgress
 )
 
@@ -42,6 +42,8 @@ enrollmentRouter.delete(
     logger,
     auth,
     restrictTo("user"),
-    idValidator,
+    validator(idValidator),
     cancelEnrollment
 )
+
+module.exports = enrollmentRouter

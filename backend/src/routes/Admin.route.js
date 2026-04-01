@@ -3,6 +3,7 @@ const {Router} = require("express")
 const {logger} = require("../middlewares/logger")
 const {auth} = require("../middlewares/authenticate")
 const {restrictTo} = require("../middlewares/restrictTo")
+const { validator } = require("../middlewares/validator")
 const {idValidator} = require("../validators/paramSchema")
 const {ownership} = require("../middlewares/ownership")
 const {changeRoleValidator} = require("../validators/user.schema")
@@ -20,14 +21,14 @@ adminRouter.get(
 adminRouter.put(
     "/courses/:id/publish",
     logger,
-    idValidator,
+    validator(idValidator),
     ownership,
     togglePublishAny
 )
 adminRouter.delete(
     "/courses/:id",
     logger,
-    idValidator,
+    validator(idValidator),
     deleteCourseAny
 )
 
@@ -40,22 +41,22 @@ adminRouter.get(
 adminRouter.delete(
     "/users/:id",
     logger,
-    idValidator,
+    validator(idValidator),
     deleteUser
 )
 
 adminRouter.patch(
     "/users/:id/role",
     logger,
-    idValidator,
-    changeRoleValidator,
+    validator(idValidator),
+    validator(changeRoleValidator),
     UpdateUserRole
 )
 
 adminRouter.get(
    "/users/:id/enrollments",
    logger,
-   idValidator,
+   validator(idValidator),
    getEnrolledCoursesAdmin
 )
 

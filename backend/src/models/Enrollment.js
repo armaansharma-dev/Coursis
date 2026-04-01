@@ -40,7 +40,9 @@ const EnrollmentSchema = new Schema({
         required: true,
         immutable : true
     }
-}).strict()
+},{
+    strict: true
+})
 
  EnrollmentSchema.index(
         {user : 1, course :1},
