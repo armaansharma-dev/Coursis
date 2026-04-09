@@ -29,7 +29,7 @@ courseRouter.get(
     getMyCourses)
 
 courseRouter.put(
-    "/:id/publish", 
+    "/:id/publish",
     logger,
     auth,
     restrictTo("admin", "teacher"),
@@ -47,38 +47,38 @@ courseRouter.get(
     getEnrolledUsers)
 
 courseRouter.patch(
-    "/:id", 
+    "/:id",
     logger,
     auth,
     restrictTo("admin", "teacher"),
     validator(idValidator),
     ownership,
-    validator(updateCourseValidator), 
-    updateCourse)             
+    validator(updateCourseValidator),
+    updateCourse)
 
 courseRouter.delete(
-    "/:id", 
+    "/:id",
     logger,
     auth,
     restrictTo("admin", "teacher"),
     validator(idValidator),
-    ownership, 
+    ownership,
     deleteCourse)
 
 courseRouter.get(
-    "/", 
-    logger, 
-    publicCourses)
-
-courseRouter.get(
-    "/random", 
+    "/random",
     logger,
     getRandomCourses)
 
 courseRouter.get(
-    "/:id", 
-    logger, 
-    validator(idValidator), 
+    "/",
+    logger,
+    publicCourses)
+
+courseRouter.get(
+    "/:id",
+    logger,
+    validator(idValidator),
     viewCoursePublic)
 
 module.exports = courseRouter

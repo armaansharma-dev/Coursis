@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const { auth } = require("../middlewares/authenticate");
 const { logger } = require("../middlewares/logger");
+const { restrictTo } = require("../middlewares/restrictTo");
 const { validator } = require("../middlewares/validator");
 const {
   getAdminStats,
@@ -23,48 +24,37 @@ const {
 
 const adminRouter = Router();
 
-// Middleware to check if user is admin
-const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === "admin") {
-    return next();
-  }
-  return res.status(403).json({
-    success: false,
-    message: "Access denied. Admin only.",
-  });
-};
-
 // Admin stats
-adminRouter.get("/stats", logger, auth, isAdmin, getAdminStats);
+adminRouter.get("/stats", logger, auth, restrictTo("admin"), getAdminStats);
 
 // User management
-adminRouter.get("/users", logger, auth, isAdmin, getAllUsers);
+adminRouter.get("/users", logger, auth, restrictTo("admin"), getAllUsers);
 
-adminRouter.get("/users/:userId", logger, auth, isAdmin, getUserDetail);
+adminRouter.get("/users/:userId", logger, auth, restrictTo("admin"), getUserDetail);
 
 adminRouter.patch(
   "/users/:userId/role",
   logger,
   auth,
-  isAdmin,
+  restrictTo("admin"),
   validator(updateUserRoleValidator),
   updateUserRole
 );
 
-adminRouter.delete("/users/:userId", logger, auth, isAdmin, deleteUser);
+adminRouter.delete("/users/:userId", logger, auth, restrictTo("admin"), deleteUser);
 
-adminRouter.get("/users/:userId/enrollments", logger, auth, isAdmin, getUserEnrollments);
+adminRouter.get("/users/:userId/enrollments", logger, auth, restrictTo("admin"), getUserEnrollments);
 
 // Course management
-adminRouter.get("/courses", logger, auth, isAdmin, getAllCourses);
+adminRouter.get("/courses", logger, auth, restrictTo("admin"), getAllCourses);
 
-adminRouter.get("/courses/:courseId", logger, auth, isAdmin, getCourseDetail);
+adminRouter.get("/courses/:courseId", logger, auth, restrictTo("admin"), getCourseDetail);
 
 adminRouter.patch(
   "/courses/:courseId",
   logger,
   auth,
-  isAdmin,
+  restrictTo("admin"),
   validator(updateCourseValidator),
   updateCourse
 );
@@ -73,7 +63,7 @@ adminRouter.patch(
   "/courses/:courseId/archive",
   logger,
   auth,
-  isAdmin,
+  restrictTo("admin"),
   archiveCourse
 );
 
@@ -81,10 +71,10 @@ adminRouter.patch(
   "/courses/:courseId/restore",
   logger,
   auth,
-  isAdmin,
+  restrictTo("admin"),
   restoreCourse
 );
 
-adminRouter.delete("/courses/:courseId", logger, auth, isAdmin, deleteCourse);
+adminRouter.delete("/courses/:courseId", logger, auth, restrictTo("admin"), deleteCourse);
 
 module.exports = adminRouter;

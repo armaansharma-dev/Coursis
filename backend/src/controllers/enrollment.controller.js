@@ -15,8 +15,8 @@ exports.createEnrollment = asyncWrapper(async function createEnrollment(req, res
     }
 
     const course = await Course.findOne({_id : courseID})
-    if(!course){
-        return next(new AppError("Course doesnt exists", 400))
+    if(!course || !course.published){
+        return next(new AppError("Course doesn't exist or is not available", 400))
     }
 
     const enrollment = await Enrollment.findOne({user : userID, course : courseID})
@@ -37,8 +37,8 @@ exports.createEnrollment = asyncWrapper(async function createEnrollment(req, res
         success : true,
         message : "Enrolled successfully",
         data : {
-            enrollment : enroll._id,
-            courseID : courseID,
+            enrollmentId : enroll._id,
+            courseId : courseID,
             status : enroll.status
         }
     })
@@ -71,6 +71,11 @@ exports.getEnrolledCourses = asyncWrapper(async function getEnrolledCourses(req,
 exports.getEnrolledUsers = asyncWrapper(async function getEnrolledUsers(req, res, next){
     const courseID = req.params.id
 
+    // Check if teacher is accessing their own course
+    if(req.user.role === "teacher" && req.course.creator.toString() !== req.user.id.toString()){
+        return next(new AppError("Cannot view other teachers' enrollments", 403))
+    }
+
     const myEnrollments = await Enrollment.find({course : courseID}).populate("user", "name email createdAt")
     if(myEnrollments.length === 0){
         return res.status(200).json({
@@ -93,10 +98,14 @@ exports.updateProgress = asyncWrapper(async function updateProgress(req, res, ne
     const {progress} = req.body
     const courseID = req.params.id
 
+    if (typeof progress !== 'number' || progress < 0 || progress > 100) {
+        return next(new AppError("Progress must be a number between 0 and 100", 400))
+    }
+
     const enrollment = await Enrollment.findOne({user: userID,
    course: courseID})
     if(!enrollment){
-        return next(new AppError("Enrollment doesnt exist",404))
+        return next(new AppError("Enrollment doesn't exist",404))
     }
 
     if(enrollment.user.toString() !== userID.toString()){
