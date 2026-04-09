@@ -7,8 +7,8 @@ const { asyncWrapper } = require("../middlewares/catchAsync")
 exports.signup = asyncWrapper(async function signup(req, res, next){
     const{name, email, password} = req.body
 
-    const extinguish = await User.findOne({email})
-    if(extinguish){
+    const existingUser = await User.findOne({email})
+    if(existingUser){
         return next(new AppError("Email already in use", 400))
     }
 
@@ -41,7 +41,7 @@ exports.signin = asyncWrapper(async function signin(req, res, next){
 
     const user = await User.findOne({email}).select("+password")
     if(!user){
-        return next(new AppError("User doesnt exists", 400))
+        return next(new AppError("User doesn't exist", 400))
     }
 
     const valid = await compare(plainPassword, user.password)

@@ -39,7 +39,17 @@ type Course = {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null;
+  const userString = localStorage.getItem("user");
+  let user = null;
+
+  if (userString) {
+    try {
+      user = JSON.parse(userString);
+    } catch (e) {
+      user = null;
+    }
+  }
+
   const initialLoadRef = useRef(false);
 
   const [stats, setStats] = useState<AdminStats | null>(null);

@@ -14,8 +14,33 @@ import Layout from "./components/layout/Layout"
 import AuthLayout from "./components/layout/AuthLayout"
 
 import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { useEffect } from "react"
 
 function App() {
+  // Check token expiration on app load
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      try {
+        const parts = token.split('.')
+        if (parts.length === 3) {
+          const decoded = JSON.parse(atob(parts[1]))
+          const expiresAt = decoded.exp * 1000 // convert to milliseconds
+
+          if (expiresAt < Date.now()) {
+            // Token expired, clear it
+            localStorage.removeItem("token")
+            localStorage.removeItem("user")
+          }
+        }
+      } catch (e) {
+        // Invalid token format, clear it
+        localStorage.removeItem("token")
+        localStorage.removeItem("user")
+      }
+    }
+  }, [])
+
   return (
     <BrowserRouter>
       <div className="min-h-screen flex flex-col bg-gray-50">
