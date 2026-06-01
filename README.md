@@ -250,7 +250,7 @@ npm run dev
 
 The app will be available at:
 - Frontend: `http://localhost:5173`
-- Backend: `http://localhost:5000`
+- Backend: `http://localhost:5400`
 
 ---
 
@@ -258,15 +258,17 @@ The app will be available at:
 
 ### Backend (.env)
 ```
-PORT=5000
-MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/coursis
+PORT=5400
+MONGO_URL=mongodb+srv://user:password@cluster.mongodb.net/coursis
 JWT_SECRET=your_super_secret_jwt_key_here
 NODE_ENV=development
+CORS_ORIGIN=http://localhost:5173
 ```
 
 ### Frontend (.env.local)
 ```
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5400/api/v1
+VITE_ENV=development
 ```
 
 See `.env.example` files in backend/ and frontend/ for complete templates.
