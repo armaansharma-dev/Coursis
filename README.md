@@ -4,6 +4,8 @@ A full-stack course marketplace: teachers publish courses, students browse and e
 
 Built with **React + TypeScript + Tailwind** on the frontend and **Node.js + Express 5 + MongoDB** on the backend, with JWT authentication and three roles.
 
+**Status:** functional MVP — see the [Roadmap](#-roadmap--known-gaps) for what is not built yet.
+
 ---
 
 ## 📋 What works today
@@ -17,14 +19,6 @@ Built with **React + TypeScript + Tailwind** on the frontend and **Node.js + Exp
 - Teacher dashboard: create → publish → archive / restore / delete courses, see enrollment counts
 - Admin dashboard: platform stats, user management (role change / delete), course management
 - Validation on every write (Zod), centralized error responses, ownership checks
-
-### Current limitations
-
-- **No payments.** Enrolling creates an `Enrollment` document; no money moves. `priceBought` is recorded for future use.
-- **No teacher signup.** Signup always creates a `user`. An admin promotes a user to `teacher`.
-- **No lessons/video content.** A course is currently title, description, price and image.
-- **Progress is stored but has no UI.** `PATCH /enrollment/:id/progress` exists; students can't set it from the app yet.
-- No password reset, email verification, ratings or search.
 
 ---
 
@@ -316,15 +310,17 @@ Run both servers, then:
 
 ---
 
-## 🗺️ Roadmap
+## 🗺️ Roadmap & known gaps
 
-- Teacher application/onboarding flow
-- Lessons, video content and progress UI
-- Payments (Stripe / PayPal) and refunds
-- Search, filters and pagination
-- Ratings and reviews
-- Email verification and password reset
-- Automated tests (API + UI)
+None of the items below are built yet; this list is both the planned work and the current limitations.
+
+- **Teacher signup / onboarding flow.** Signup always creates a `user`; an admin must promote someone to `teacher`.
+- **Lessons, video content and progress UI.** A course is currently title, description, price and image; `PATCH /enrollment/:id/progress` exists but students cannot set progress from the app.
+- **Payments (Stripe / PayPal) and refunds.** Enrolling creates an `Enrollment` document; no money moves and `priceBought` is recorded for future use.
+- **Search, filters and pagination.**
+- **Ratings and reviews.**
+- **Email verification and password reset.**
+- **Automated tests (API + UI).**
 
 ---
 
