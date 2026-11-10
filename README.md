@@ -27,7 +27,7 @@ Built with **React + TypeScript + Tailwind** on the frontend and **Node.js + Exp
 | Layer | Technology |
 |-------|------------|
 | Frontend | React 19, TypeScript 5.9, Tailwind CSS 4, Vite 8, React Router 7 |
-| Backend | Node.js 18+, Express 5 |
+| Backend | Node.js 20.19+, Express 5 |
 | Database | MongoDB Atlas, Mongoose 9 |
 | Auth | JSON Web Tokens (`jsonwebtoken` 9), bcrypt 6 |
 | Validation | Zod 4 |
@@ -78,9 +78,11 @@ Coursis/
 │   ├── src/
 │   │   ├── App.tsx                   # Routes + session refresh
 │   │   ├── config/api.ts             # Every API URL in one file
+│   │   ├── assets/                   # logo, illustrations
 │   │   ├── components/
 │   │   │   ├── CourseCard.tsx
 │   │   │   ├── Footer.tsx
+│   │   │   ├── Header.tsx
 │   │   │   └── layout/               # Layout, Navbar, AuthLayout
 │   │   └── pages/
 │   │       ├── HomePage.tsx
@@ -94,6 +96,9 @@ Coursis/
 │   ├── .env.example
 │   └── package.json
 │
+├── .gitignore
+├── LICENSE                           # MIT
+├── logo.svg
 └── README.md
 ```
 
@@ -200,7 +205,7 @@ Authorization: Bearer <jwt>
 
 ## 🚀 Getting started
 
-**Prerequisites:** Node.js 18+, a MongoDB database (Atlas or local).
+**Prerequisites:** Node.js 20.19+ (required by Vite 8), a MongoDB database (Atlas or local).
 
 ### 1. Backend
 
@@ -266,9 +271,8 @@ VITE_API_URL=http://localhost:5400/api/v1
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start with nodemon |
-
-> There is no `npm start` / test script yet. For production, run `node src/server.js` behind a process manager.
+| `npm run dev` | Start with nodemon (auto-restart) |
+| `npm start` | Start once with plain `node` — use this in production |
 
 **Frontend**
 
@@ -326,4 +330,6 @@ None of the items below are built yet; this list is both the planned work and th
 
 ## 📄 License
 
-MIT — see `LICENSE`.
+MIT — see [`LICENSE`](./LICENSE). You may use, copy, modify and distribute this code, provided the copyright notice is kept. No warranty is provided.
+
+Copyright © 2026 Armaan Sharma.
