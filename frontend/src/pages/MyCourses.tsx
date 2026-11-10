@@ -31,6 +31,11 @@ const MyCourses: React.FC = () => {
   const [enrollments, setEnrollments] = useState<EnrolledCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [unenrollingId, setUnenrollingId] = useState<string | null>(null);
+
+  // If a course was deleted before this fix existed, populate() can
+  // return null. Filter those out so rendering never crashes.
+  const visibleEnrollments = enrollments.filter((enrollment) => enrollment.course);
 
   useEffect(() => {
     if (!token) {
@@ -84,6 +89,46 @@ const MyCourses: React.FC = () => {
     }
   };
 
+  const handleUnenroll = async (enrollment: EnrolledCourse) => {
+    if (!enrollment.course) return;
+
+    const confirmed = window.confirm(
+      `Leave "${enrollment.course.title}"? You will lose access to it.`
+    );
+    if (!confirmed) return;
+
+    try {
+      setUnenrollingId(enrollment._id);
+      setError(null);
+
+      const res = await fetch(ENDPOINTS.cancelEnrollment(enrollment._id), {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+        return;
+      }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.message || "Failed to leave the course");
+      }
+
+      setEnrollments((prev) => prev.filter((e) => e._id !== enrollment._id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to leave the course");
+    } finally {
+      setUnenrollingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
@@ -125,14 +170,14 @@ const MyCourses: React.FC = () => {
         )}
 
         {/* Dashboard Stats */}
-        {enrollments.length > 0 && (
+        {visibleEnrollments.length > 0 && (
           <div className="mb-12 grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Total Courses */}
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium mb-1">Total Courses</p>
-                  <p className="text-4xl font-bold text-gray-900">{enrollments.length}</p>
+                  <p className="text-4xl font-bold text-gray-900">{visibleEnrollments.length}</p>
                 </div>
                 <div className="p-4 bg-indigo-100 rounded-full">
                   <FaBook className="w-8 h-8 text-indigo-600" />
@@ -146,7 +191,7 @@ const MyCourses: React.FC = () => {
                 <div>
                   <p className="text-gray-600 text-sm font-medium mb-1">In Progress</p>
                   <p className="text-4xl font-bold text-blue-600">
-                    {enrollments.filter((e) => e.progress > 0 && e.progress < 100).length}
+                    {visibleEnrollments.filter((e) => e.progress > 0 && e.progress < 100).length}
                   </p>
                 </div>
                 <div className="p-4 bg-blue-100 rounded-full">
@@ -161,7 +206,7 @@ const MyCourses: React.FC = () => {
                 <div>
                   <p className="text-gray-600 text-sm font-medium mb-1">Completed</p>
                   <p className="text-4xl font-bold text-green-600">
-                    {enrollments.filter((e) => e.progress === 100).length}
+                    {visibleEnrollments.filter((e) => e.progress === 100).length}
                   </p>
                 </div>
                 <div className="p-4 bg-green-100 rounded-full">
@@ -173,7 +218,7 @@ const MyCourses: React.FC = () => {
         )}
 
         {/* Courses Grid or Empty State */}
-        {enrollments.length === 0 ? (
+        {visibleEnrollments.length === 0 ? (
           <div className="bg-white rounded-xl shadow-lg p-16 text-center border border-gray-200">
             <div className="mb-4 flex justify-center">
               <div className="p-4 bg-gray-100 rounded-full">
@@ -196,7 +241,7 @@ const MyCourses: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {enrollments.map((enrollment) => (
+            {visibleEnrollments.map((enrollment) => (
               <div
                 key={enrollment._id}
                 className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-200 flex flex-col"
@@ -233,14 +278,23 @@ const MyCourses: React.FC = () => {
                   </div>
 
                   {/* Actions */}
-                  <button
-                    onClick={() =>
-                      navigate(`/course/${enrollment.course._id}`)
-                    }
-                    className="w-full px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition mt-auto"
-                  >
-                    Continue
-                  </button>
+                  <div className="mt-auto flex gap-2">
+                    <button
+                      onClick={() =>
+                        navigate(`/course/${enrollment.course._id}`)
+                      }
+                      className="flex-1 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition"
+                    >
+                      Continue
+                    </button>
+                    <button
+                      onClick={() => handleUnenroll(enrollment)}
+                      disabled={unenrollingId === enrollment._id}
+                      className="px-4 py-2 border border-red-200 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition disabled:opacity-50"
+                    >
+                      {unenrollingId === enrollment._id ? "Leaving..." : "Leave"}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

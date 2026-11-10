@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ENDPOINTS } from "../config/api";
-import { FaBook, FaDollarSign, FaEdit, FaTrash, FaPlus, FaEye, FaEyeSlash, FaUsers, FaArrowLeft, FaTimes, FaEllipsisV } from "react-icons/fa";
+import { FaBook, FaDollarSign, FaEdit, FaTrash, FaPlus, FaEye, FaUsers, FaArrowLeft, FaTimes, FaEllipsisV } from "react-icons/fa";
 
 type TeacherCourse = {
   _id: string;
@@ -11,6 +11,7 @@ type TeacherCourse = {
   image: string;
   isArchived: boolean;
   published: boolean;
+  enrollmentCount?: number;
   creator: {
     _id: string;
     name: string;
@@ -23,12 +24,6 @@ type TeacherStats = {
   totalCourses: number;
   publishedCourses: number;
   archivedCourses: number;
-};
-
-type CourseEnrollment = {
-  _id: string;
-  title: string;
-  enrollmentCount: number;
 };
 
 export default function TeacherDashboard() {
@@ -44,7 +39,6 @@ export default function TeacherDashboard() {
   const [success, setSuccess] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "courses">("overview");
   const [showArchived, setShowArchived] = useState(false);
-  const [enrollmentData, setEnrollmentData] = useState<Map<string, { count: number; userList: any[] }>>(new Map());
 
   const [editingCourse, setEditingCourse] = useState<TeacherCourse | null>(null);
   const [courseForm, setCourseForm] = useState({
@@ -66,11 +60,11 @@ export default function TeacherDashboard() {
     }
   }, [token, user, navigate]);
 
-  // Refresh enrollment data when tab becomes visible
+  // Refresh counts when the tab becomes visible: one request, no N+1.
   useEffect(() => {
-    const handleVisibilityChange = async () => {
+    const handleVisibilityChange = () => {
       if (document.visibilityState === "visible" && courses.length > 0) {
-        await refreshEnrollmentData();
+        loadTeacherData(true);
       }
     };
 
@@ -78,12 +72,13 @@ export default function TeacherDashboard() {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [courses, token]);
 
-  const loadTeacherData = async () => {
+  const loadTeacherData = async (silent = false) => {
     try {
       setError(null);
-      setLoading(true);
+      if (!silent) setLoading(true);
 
-      // Fetch teacher's own courses (includes unpublished)
+      // Fetch teacher's own courses (includes unpublished).
+      // The API now attaches enrollmentCount, so no loop is needed.
       const coursesRes = await fetch(ENDPOINTS.teacherMyCourses, {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
@@ -91,29 +86,6 @@ export default function TeacherDashboard() {
       if (!coursesRes.ok) throw new Error("Failed to fetch courses");
       const coursesData = await coursesRes.json();
       setCourses(coursesData.data || []);
-
-      // Fetch enrollment data for each course
-      const enrollmentMap = new Map();
-      for (const course of coursesData.data || []) {
-        try {
-          const enrollRes = await fetch(ENDPOINTS.enrolledUsers(course._id), {
-            headers: { Authorization: `Bearer ${token}` },
-            cache: "no-store",
-          });
-          if (enrollRes.ok) {
-            const enrollData = await enrollRes.json();
-            enrollmentMap.set(course._id, {
-              count: enrollData.count || 0,
-              userList: enrollData.enrollments || [],
-            });
-          } else {
-            enrollmentMap.set(course._id, { count: 0, userList: [] });
-          }
-        } catch (e) {
-          enrollmentMap.set(course._id, { count: 0, userList: [] });
-        }
-      }
-      setEnrollmentData(enrollmentMap);
 
       // Calculate stats
       const stats: TeacherStats = {
@@ -126,36 +98,7 @@ export default function TeacherDashboard() {
       const message = err instanceof Error ? err.message : "Failed to load dashboard";
       setError(message);
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const refreshEnrollmentData = async () => {
-    if (!token || courses.length === 0) return;
-
-    try {
-      const enrollmentMap = new Map();
-      for (const course of courses) {
-        try {
-          const enrollRes = await fetch(ENDPOINTS.enrolledUsers(course._id), {
-            headers: { Authorization: `Bearer ${token}` },
-            cache: "no-store",
-          });
-          if (enrollRes.ok) {
-            const enrollData = await enrollRes.json();
-            enrollmentMap.set(course._id, {
-              count: enrollData.count || 0,
-              userList: enrollData.enrollments || [],
-            });
-          } else {
-            enrollmentMap.set(course._id, { count: 0, userList: [] });
-          }
-        } catch (e) {
-          enrollmentMap.set(course._id, { count: 0, userList: [] });
-        }
-      }
-      setEnrollmentData(enrollmentMap);
-    } catch (err) {
+      if (!silent) setLoading(false);
     }
   };
 
@@ -285,7 +228,7 @@ export default function TeacherDashboard() {
     }
   };
 
-  const handleTabChange = (tab: "overview" | "courses" | "enrollments") => {
+  const handleTabChange = (tab: "overview" | "courses") => {
     setActiveTab(tab);
   };
 
@@ -345,10 +288,10 @@ export default function TeacherDashboard() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-1 w-fit">
-          {["overview", "courses"].map((tab) => (
+          {(["overview", "courses"] as const).map((tab) => (
             <button
               key={tab}
-              onClick={() => handleTabChange(tab as any)}
+              onClick={() => handleTabChange(tab)}
               className={`px-6 py-2.5 rounded-lg font-semibold transition capitalize text-sm ${
                 activeTab === tab
                   ? "bg-gradient-to-r from-purple-600 to-purple-600 text-white shadow-md"
@@ -480,7 +423,7 @@ export default function TeacherDashboard() {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {filteredCourses.map((course) => {
-                      const enrollmentCount = enrollmentData.get(course._id)?.count || 0;
+                      const enrollmentCount = course.enrollmentCount || 0;
                       const revenue = enrollmentCount * (course.price || 0);
                       return (
                         <tr key={course._id} className="hover:bg-gray-50 transition">
@@ -620,7 +563,7 @@ export default function TeacherDashboard() {
                   type="text"
                   value={courseForm.title}
                   onChange={(e) => setCourseForm({ ...courseForm, title: e.target.value })}
-                  placeholder="Enter course title (3-30 characters)"
+                  placeholder="Enter course title (5-30 characters)"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition text-sm"
                 />
               </div>
@@ -629,7 +572,7 @@ export default function TeacherDashboard() {
                 <textarea
                   value={courseForm.description}
                   onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
-                  placeholder="Enter course description (minimum 10 characters)"
+                  placeholder="Enter course description (minimum 20 characters)"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition text-sm"
                   rows={4}
                 />

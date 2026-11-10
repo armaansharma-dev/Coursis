@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaUserCircle, FaCompass, FaHome, FaChevronDown, FaSignOutAlt, FaArrowRight, FaShieldAlt } from "react-icons/fa";
+import { FaUserCircle, FaCompass, FaHome, FaChevronDown, FaSignOutAlt } from "react-icons/fa";
 import logo from "../../assets/logo.svg"
 
 export default function Navbar() {

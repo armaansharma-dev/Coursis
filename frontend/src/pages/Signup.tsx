@@ -182,10 +182,11 @@ export default function Signup() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  minLength={8}
                   className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition duration-200"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-2">Minimum 6 characters required</p>
+              <p className="text-xs text-gray-500 mt-2">Minimum 8 characters required</p>
             </div>
 
             {/* Sign Up Button */}

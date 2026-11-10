@@ -63,8 +63,27 @@ export default function CourseDetails() {
       return
     }
 
-    const fetchCourse = async () => {
+    const loadCourse = async () => {
       try {
+        // Enrolled students keep access even if the course was
+        // unpublished or archived after they bought it.
+        if (token) {
+          const enrolledRes = await fetch(ENDPOINTS.enrolledCourseContent(id), {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+
+          if (enrolledRes.ok) {
+            const enrolledData = await enrolledRes.json()
+            if (enrolledData?.status === "success" && enrolledData?.data) {
+              setCourse(enrolledData.data)
+              setIsAlreadyEnrolled(true)
+              setImageBroken(false)
+              return
+            }
+          }
+        }
+
+        // Not enrolled (or logged out): fall back to the public endpoint.
         const res = await fetch(ENDPOINTS.courseById(id))
         const data = await res.json()
 
@@ -85,30 +104,7 @@ export default function CourseDetails() {
       }
     }
 
-    const checkEnrollmentStatus = async () => {
-      if (!token) return
-
-      try {
-        const res = await fetch(ENDPOINTS.myEnrollments, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        const data = await res.json()
-
-        if (data.success && Array.isArray(data.data)) {
-          const isEnrolled = data.data.some((enrollment: any) => enrollment.course?._id === id)
-          setIsAlreadyEnrolled(isEnrolled)
-        }
-      } catch (err) {
-      }
-    }
-
-    fetchCourse()
-    checkEnrollmentStatus()
+    loadCourse()
   }, [id, token])
 
   const courseImage = course?.image?.trim() ? course.image.trim() : ""

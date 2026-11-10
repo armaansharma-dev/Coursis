@@ -22,6 +22,10 @@ const updateCourseSchema = z.object({
     .number()
     .min(0, "Price cannot be negative")
     .optional(),
+  image: z
+    .string()
+    .optional()
+    .refine((val) => !val || val.startsWith("http"), "Image must be a valid URL"),
   published: z.boolean().optional(),
 }).strict();
 

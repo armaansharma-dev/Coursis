@@ -1,8 +1,22 @@
 const express = require ("express")
 const app = express()
 const cors = require("cors");
+
+// Comma-separated list so localhost, 127.0.0.1, LAN and deployed
+// domains can all be allowed without editing code.
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  origin: (origin, callback) => {
+    // No Origin header (curl/Postman/same-origin) is always allowed.
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true)
+    }
+    return callback(null, false)
+  },
   credentials: true
 }))
 const {notfound} = require("./middlewares/notfound")

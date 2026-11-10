@@ -14,31 +14,71 @@ import Layout from "./components/layout/Layout"
 import AuthLayout from "./components/layout/AuthLayout"
 
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { ENDPOINTS } from "./config/api"
+
+// JWTs are base64url ("-" and "_" instead of "+" and "/"),
+// which plain atob() cannot decode. Convert before decoding.
+function decodeJwtPayload(token: string) {
+  const base64Url = token.split(".")[1]
+  if (!base64Url) throw new Error("Invalid token")
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+  return JSON.parse(atob(base64))
+}
 
 function App() {
-  // Check token expiration on app load
+  // Bumping this forces a re-render, so Navbar re-reads the
+  // refreshed token/user from localStorage.
+  const [, setAuthVersion] = useState(0)
+
   useEffect(() => {
     const token = localStorage.getItem("token")
-    if (token) {
-      try {
-        const parts = token.split('.')
-        if (parts.length === 3) {
-          const decoded = JSON.parse(atob(parts[1]))
-          const expiresAt = decoded.exp * 1000 // convert to milliseconds
+    if (!token) return
 
-          if (expiresAt < Date.now()) {
-            // Token expired, clear it
-            localStorage.removeItem("token")
-            localStorage.removeItem("user")
-          }
+    let decoded: { exp?: number }
+    try {
+      decoded = decodeJwtPayload(token)
+    } catch {
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
+      return
+    }
+
+    if (typeof decoded.exp === "number" && decoded.exp * 1000 < Date.now()) {
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
+      return
+    }
+
+    // The token is a 7-hour snapshot of the role. Ask the server for
+    // a fresh one so admin role changes apply without re-login.
+    const syncSession = async () => {
+      try {
+        const res = await fetch(ENDPOINTS.refresh, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (res.status === 401 || res.status === 404) {
+          localStorage.removeItem("token")
+          localStorage.removeItem("user")
+          setAuthVersion((v) => v + 1)
+          return
         }
-      } catch (e) {
-        // Invalid token format, clear it
-        localStorage.removeItem("token")
-        localStorage.removeItem("user")
+
+        if (!res.ok) return
+
+        const data = await res.json()
+        if (data?.token && data?.safeuser) {
+          localStorage.setItem("token", data.token)
+          localStorage.setItem("user", JSON.stringify(data.safeuser))
+          setAuthVersion((v) => v + 1)
+        }
+      } catch {
+        // Offline: keep the stored session; individual pages show errors.
       }
     }
+
+    syncSession()
   }, [])
 
   return (

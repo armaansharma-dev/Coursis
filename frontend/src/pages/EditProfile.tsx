@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ENDPOINTS } from "../config/api";
-import { FaUser, FaLock, FaEnvelope, FaArrowLeft, FaCheckCircle, FaCalendar, FaShieldAlt, FaPen, FaTimes } from "react-icons/fa";
+import { FaUser, FaLock, FaArrowLeft, FaCheckCircle, FaCalendar, FaPen, FaTimes } from "react-icons/fa";
 
 type UserProfile = {
   _id: string;
@@ -87,8 +87,8 @@ export default function EditProfile() {
     e.preventDefault();
     setNameError(null);
 
-    if (!newName.trim() || newName.trim().length < 2) {
-      setNameError("Name must be at least 2 characters");
+    if (!newName.trim() || newName.trim().length < 4) {
+      setNameError("Name must be at least 4 characters");
       return;
     }
 
@@ -461,6 +461,7 @@ export default function EditProfile() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Your full name"
+                minLength={4}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition text-sm"
               />
 

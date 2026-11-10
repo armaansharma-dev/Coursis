@@ -1,5 +1,6 @@
 const { asyncWrapper } = require("../middlewares/catchAsync")
 const Course = require("../models/Course")
+const Enrollment = require("../models/Enrollment")
 
 exports.createCourse = asyncWrapper(async(req, res, next) => {
     const allowedFields = ["title", "description", "price", "image"]
@@ -48,10 +49,14 @@ exports.updateCourse = asyncWrapper(async(req, res, next) => {
 })
 
 exports.deleteCourse = asyncWrapper(async(req, res, next) => {
+    // MongoDB has no foreign keys, so enrollments pointing at this
+    // course would survive as orphan documents. Remove them first.
+    await Enrollment.deleteMany({course : req.course._id})
     await req.course.deleteOne()
 
-    res.status(204).json({
+    res.status(200).json({
         status : "success",
+        message : "Course deleted successfully"
     })
 })
 
@@ -70,11 +75,26 @@ exports.togglePublish = asyncWrapper(async(req, res, next) => {
 })
 
 exports.getMyCourses = asyncWrapper(async(req, res, next) => {
-    const myCourses = await Course.find({creator : req.user.id})
+    const myCourses = await Course.find({creator : req.user.id}).lean()
+
+    // One aggregate for all courses instead of one HTTP request per course.
+    const counts = await Enrollment.aggregate([
+        { $match : { course : { $in : myCourses.map(course => course._id) } } },
+        { $group : { _id : "$course", count : { $sum : 1 } } }
+    ])
+
+    const countByCourse = new Map(
+        counts.map(item => [item._id.toString(), item.count])
+    )
+
+    const data = myCourses.map(course => ({
+        ...course,
+        enrollmentCount : countByCourse.get(course._id.toString()) || 0
+    }))
 
     res.status(200).json({
         status: "success",
-        data: myCourses,
-        count: myCourses.length
+        data,
+        count: data.length
     })
 })

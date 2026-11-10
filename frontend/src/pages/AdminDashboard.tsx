@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ENDPOINTS } from "../config/api";
-import { FaUsers, FaBook, FaDollarSign, FaEdit, FaTrash, FaTimes, FaCheck, FaEye, FaEyeSlash, FaArrowLeft, FaCheckCircle, FaExclamationTriangle, FaEllipsisV } from "react-icons/fa";
+import { FaUsers, FaBook, FaDollarSign, FaEdit, FaTrash, FaTimes, FaArrowLeft, FaExclamationTriangle, FaEllipsisV } from "react-icons/fa";
 
 type AdminStats = {
   totalUsers: number;
@@ -28,6 +28,7 @@ type Course = {
   price: number;
   isArchived: boolean;
   published: boolean;
+  enrollmentCount?: number;
   creator: {
     _id: string;
     name: string;
@@ -69,7 +70,6 @@ export default function AdminDashboard() {
   const [courseForm, setCourseForm] = useState({ title: "", description: "", price: 0, published: false });
   const [userRoleForm, setUserRoleForm] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [courseEnrollments, setCourseEnrollments] = useState<Record<string, number>>({});
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -81,11 +81,11 @@ export default function AdminDashboard() {
     }
   }, [token, user, navigate]);
 
-  // Refresh enrollment data when tab becomes visible
+  // Refresh counts when the tab becomes visible: one request, no N+1.
   useEffect(() => {
-    const handleVisibilityChange = async () => {
+    const handleVisibilityChange = () => {
       if (document.visibilityState === "visible" && courses.length > 0) {
-        await refreshCourseEnrollments();
+        loadAllData(true);
       }
     };
 
@@ -93,10 +93,10 @@ export default function AdminDashboard() {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [courses, token]);
 
-  const loadAllData = async () => {
+  const loadAllData = async (silent = false) => {
     try {
       setError(null);
-      setLoading(true);
+      if (!silent) setLoading(true);
 
       const statsRes = await fetch(ENDPOINTS.adminStats, {
         headers: { Authorization: `Bearer ${token}` },
@@ -120,58 +120,14 @@ export default function AdminDashboard() {
       });
       if (!coursesRes.ok) throw new Error("Failed to fetch courses");
       const coursesData = await coursesRes.json();
+      // The API now attaches enrollmentCount per course, so the
+      // previous one-request-per-course loop is gone.
       setCourses(coursesData.data || []);
-
-      // Fetch enrollment counts for each course
-      if (coursesData.data && Array.isArray(coursesData.data)) {
-        const enrollmentCounts: Record<string, number> = {};
-        for (const course of coursesData.data) {
-          try {
-            const enrollRes = await fetch(ENDPOINTS.enrolledUsers(course._id), {
-              headers: { Authorization: `Bearer ${token}` },
-              cache: "no-store",
-            });
-            if (enrollRes.ok) {
-              const enrollData = await enrollRes.json();
-              enrollmentCounts[course._id] = enrollData.count || enrollData.enrollments?.length || 0;
-            }
-          } catch (err) {
-            enrollmentCounts[course._id] = 0;
-          }
-        }
-        setCourseEnrollments(enrollmentCounts);
-      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load dashboard";
       setError(message);
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const refreshCourseEnrollments = async () => {
-    if (!token || courses.length === 0) return;
-
-    try {
-      const enrollmentCounts: Record<string, number> = {};
-      for (const course of courses) {
-        try {
-          const enrollRes = await fetch(ENDPOINTS.enrolledUsers(course._id), {
-            headers: { Authorization: `Bearer ${token}` },
-            cache: "no-store",
-          });
-          if (enrollRes.ok) {
-            const enrollData = await enrollRes.json();
-            enrollmentCounts[course._id] = enrollData.count || enrollData.enrollments?.length || 0;
-          } else {
-            enrollmentCounts[course._id] = 0;
-          }
-        } catch (err) {
-          enrollmentCounts[course._id] = 0;
-        }
-      }
-      setCourseEnrollments(enrollmentCounts);
-    } catch (err) {
+      if (!silent) setLoading(false);
     }
   };
 
@@ -645,7 +601,7 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4 text-sm">
                           <div className="flex items-center gap-2">
                             <FaUsers className="text-gray-400 text-xs" />
-                            <span className="font-semibold text-gray-900">{courseEnrollments[course._id] || 0}</span>
+                            <span className="font-semibold text-gray-900">{course.enrollmentCount || 0}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm">

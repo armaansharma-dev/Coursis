@@ -12,9 +12,11 @@ export const ENDPOINTS = {
   // Authentication
   login: `${API_BASE_URL}/auth/login`,
   signup: `${API_BASE_URL}/auth/signup`,
+  refresh: `${API_BASE_URL}/auth/refresh`,
 
   // Enrollment
   enrollCourse: (courseId: string) => `${API_BASE_URL}/enrollment/${courseId}`,
+  enrolledCourseContent: (courseId: string) => `${API_BASE_URL}/enrollment/course/${courseId}`,
   myEnrollments: `${API_BASE_URL}/enrollment/me`,
   cancelEnrollment: (enrollmentId: string) => `${API_BASE_URL}/enrollment/${enrollmentId}`,
   enrolledUsers: (courseId: string) => `${API_BASE_URL}/course/${courseId}/enrollments`,
@@ -28,11 +30,9 @@ export const ENDPOINTS = {
   // Admin
   adminStats: `${API_BASE_URL}/admin/stats`,
   adminUsers: `${API_BASE_URL}/admin/users`,
-  adminUserDetail: (userId: string) => `${API_BASE_URL}/admin/users/${userId}`,
   adminUserEnrollments: (userId: string) => `${API_BASE_URL}/admin/users/${userId}/enrollments`,
   updateUserRole: (userId: string) => `${API_BASE_URL}/admin/users/${userId}/role`,
   adminCourses: `${API_BASE_URL}/admin/courses`,
-  adminCourseDetail: (courseId: string) => `${API_BASE_URL}/admin/courses/${courseId}`,
   updateAdminCourse: (courseId: string) => `${API_BASE_URL}/admin/courses/${courseId}`,
   archiveCourse: (courseId: string) => `${API_BASE_URL}/admin/courses/${courseId}/archive`,
   restoreCourse: (courseId: string) => `${API_BASE_URL}/admin/courses/${courseId}/restore`,

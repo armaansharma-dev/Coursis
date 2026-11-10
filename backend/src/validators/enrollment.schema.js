@@ -8,6 +8,14 @@ const enrollmentValidator = {
    }).strict()
 }
 
+const enrolledCourseValidator = {
+   params: z.object({
+      courseId : z.string()
+         .length(24, "Invalid course ID format")
+         .refine(id => /^[0-9a-f]{24}$/.test(id), "Course ID must be a valid MongoDB ID")
+   }).strict()
+}
+
 const updateProgressValidator = {
    body: z.object({
       progress : z.number()
@@ -22,5 +30,6 @@ const updateProgressValidator = {
 
 module.exports = {
    enrollmentValidator,
+   enrolledCourseValidator,
    updateProgressValidator
 }

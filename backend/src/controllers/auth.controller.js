@@ -63,3 +63,28 @@ exports.signin = asyncWrapper(async function signin(req, res, next){
         safeuser
     })
 })
+
+// Re-issues a token from the CURRENT database role.
+// Without this, promote-to-teacher would not take effect until logout,
+// because the old JWT keeps saying role: "user" for up to 7 hours.
+exports.refresh = asyncWrapper(async function refresh(req, res, next){
+    const user = await User.findById(req.user.id)
+
+    if(!user){
+        return next(new AppError("User not found", 404))
+    }
+
+    const token = jwtSign(user)
+
+    const safeuser = {
+        name : user.name,
+        email : user.email,
+        role : user.role,
+        userID : user._id
+    }
+
+    return res.status(200).json({
+        token,
+        safeuser
+    })
+})

@@ -1,6 +1,5 @@
-import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaStar, FaUsers, FaBook, FaArrowRight } from 'react-icons/fa'
+import { FaBook, FaArrowRight } from 'react-icons/fa'
 
 export type CourseCardProps = {
   _id: string

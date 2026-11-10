@@ -113,7 +113,20 @@ exports.getAllCourses = asyncWrapper(async (req, res, next) => {
     .populate("creator", "name email")
     .limit(limit)
     .skip(skip)
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
+
+  // Attach enrollment counts in one query (avoid 1 request per course).
+  const counts = await Enrollment.aggregate([
+    { $match: { course: { $in: courses.map((course) => course._id) } } },
+    { $group: { _id: "$course", count: { $sum: 1 } } },
+  ]);
+  const countByCourse = new Map(counts.map((item) => [item._id.toString(), item.count]));
+
+  const data = courses.map((course) => ({
+    ...course,
+    enrollmentCount: countByCourse.get(course._id.toString()) || 0,
+  }));
 
   const total = await Course.countDocuments(query);
 
@@ -123,7 +136,7 @@ exports.getAllCourses = asyncWrapper(async (req, res, next) => {
     page,
     limit,
     totalPages: Math.ceil(total / limit),
-    data: courses,
+    data,
   });
 });
 
@@ -224,11 +237,15 @@ exports.restoreCourse = asyncWrapper(async (req, res, next) => {
 exports.deleteCourse = asyncWrapper(async (req, res, next) => {
   const { courseId } = req.params;
 
-  const course = await Course.findByIdAndDelete(courseId);
+  const course = await Course.findById(courseId);
 
   if (!course) {
     return next(new AppError("Course not found", 404));
   }
+
+  // Remove child documents first: MongoDB has no foreign keys.
+  await Enrollment.deleteMany({ course: courseId });
+  await course.deleteOne();
 
   res.status(200).json({
     status: "success",
